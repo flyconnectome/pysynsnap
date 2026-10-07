@@ -1,5 +1,10 @@
 # Alternative framings for the dynamic data
 
+Ben: this was just me asking for outside of the box alternatives and other table formats
+that might handle various aspects of what we've been discussing. Feel free to ignore for now.
+
+---
+
 These are alternatives to "base table + change log". They build on the
 two-axis view in [compaction.md](compaction.md).
 

@@ -43,7 +43,40 @@ retention while readers or the next run may hold old files.
 - Time travel uses the `t` column, not Delta versions, so the axes are
   independent: any row policy can be combined with any file option.
 - A local mirror keeps up cheaply when files are immutable and new files are
-  small. Both kinds of compaction rewrite files, so a mirror has to download
-  the rewritten files again.
+  small. Both kinds of compaction rewrite files (see [Mirroring](#mirroring)).
 - A one-off remote reader benefits most from few rows (axis 1) and few,
   well-sorted files (axis 2).
+
+## Mirroring
+
+Every compaction is a commit that removes files and adds new ones. Delta
+flags file compaction `dataChange: false`. Row collapse and rebase are
+`dataChange: true`.
+
+| Mirror | How | Effect of remote compaction |
+|---|---|---|
+| Physical | copy new data files, then new `_delta_log/` entries (e.g. `rclone copy`) | rewritten files are downloaded again |
+| Logical | append remote rows with `t >` local watermark to a local table (or read Delta's change data feed) | file compaction is skipped; collapses of rows already held can be ignored |
+| Lazy cache | download files on first read | old cached files become unused; new files are cache misses |
+
+A logical pull is cheap only if files can be skipped by `t`. Sorting the whole
+table by root spreads `t` across every file. Partitioning by day and sorting
+by root within each day serves both root filters and incremental pulls.
+
+## Expected scale
+
+- Change files: about 1-10 MB per day.
+- Rebase: monthly to quarterly, so the change table peaks at roughly
+  30 MB-1 GB. A base is a few GB.
+
+At this scale:
+
+- **Rows (axis 1).** Keeping every row until rebase costs at most about 1 GB.
+  Collapsing would save part of that but lose time points, which is probably
+  not worth it.
+- **Files (axis 2).** Hourly runs give hundreds to a few thousand small files
+  per rebase period. Merging each finished day into one file sorted by root
+  fixes this and touches at most about 10 MB per day.
+- **Mirroring.** A physical mirror is enough. Daily compaction re-downloads
+  at most a day's data. Even rewriting the whole change table costs less than
+  a rebase, which every mirror downloads anyway.
