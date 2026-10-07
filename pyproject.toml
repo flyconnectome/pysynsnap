@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pysynsnap"
+version = "0.0.1"
+description = "Experimental: versioned CAVE synapse root-id snapshots (format shared with the aedes R package)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+dependencies = ["duckdb>=1.1", "numpy", "pandas>=2"]
+
+[project.optional-dependencies]
+cave = ["caveclient>=7"]
+delta = ["deltalake>=1.0", "pyarrow>=14"]
+dev = ["pytest", "pysynsnap[cave,delta]"]
+
+[tool.pytest.ini_options]
+filterwarnings = ["ignore:The 'generic' unit for NumPy timedelta:DeprecationWarning"]
