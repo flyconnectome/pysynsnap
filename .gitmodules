@@ -1,0 +1,6 @@
+[submodule "submodules/MaterializationEngine"]
+	path = submodules/MaterializationEngine
+	url = https://github.com/CAVEconnectome/MaterializationEngine.git
+[submodule "submodules/aedes"]
+	path = submodules/aedes
+	url = https://github.com/flyconnectome/aedes.git
